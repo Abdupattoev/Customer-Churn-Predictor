@@ -8,6 +8,9 @@ Original file is located at
 
 # New Section
 """
+import streamlit as st
+st.title("Customer Churn Predictor")
+st.write("App is running successfully 🎉")
 
 import pandas as pd
 
