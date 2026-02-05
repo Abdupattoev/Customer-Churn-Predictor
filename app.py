@@ -1,15 +1,15 @@
-st.markdown("### 📊 Customer Churn Prediction using Machine Learning")
-st.write(
-"This machine learning web app predicts whether a telecom customer will churn. "
-"It helps businesses identify high-risk customers and improve retention strategies."
-)
+
 import streamlit as st
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-
+st.markdown("### 📊 Customer Churn Prediction using Machine Learning")
+st.write(
+"This machine learning web app predicts whether a telecom customer will churn. "
+"It helps businesses identify high-risk customers and improve retention strategies."
+)
 st.set_page_config(page_title="Customer Churn Predictor", layout="centered")
 
 @st.cache_resource
