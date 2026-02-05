@@ -101,7 +101,7 @@ if st.button("Predict Churn"):
     st.caption("This probability is produced by the ML model trained on the dataset.")
 
 st.markdown("---")
-st.markdown("Built by: Your Name | Data Science Portfolio Project")
+st.markdown("Built by: Abdupattoev Sardorbek | Data Science Portfolio Project")
 
 
 
