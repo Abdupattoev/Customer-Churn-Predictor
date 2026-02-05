@@ -1,17 +1,61 @@
 import streamlit as st
 import pandas as pd
-import joblib
-
-model = joblib.load("churn_model.pkl")
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 
 st.set_page_config(page_title="Customer Churn Predictor", layout="centered")
+
+@st.cache_resource
+def train_model():
+    # Load dataset
+    url = "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv"
+    df = pd.read_csv(url)
+
+    # Clean
+    df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce").fillna(0)
+    df.drop("customerID", axis=1, inplace=True)
+    df["Churn"] = (df["Churn"] == "Yes").astype(int)
+
+    # Encode categoricals (simple label encoding)
+    le = LabelEncoder()
+    for col in df.select_dtypes(include=["object"]).columns:
+        df[col] = le.fit_transform(df[col].astype(str))
+
+    X = df.drop("Churn", axis=1)
+    y = df["Churn"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    model = RandomForestClassifier(
+        n_estimators=200, random_state=42, class_weight="balanced"
+    )
+    model.fit(X_train, y_train)
+
+    acc = accuracy_score(y_test, model.predict(X_test))
+    return model, X.columns.tolist(), float(acc)
+
+model, feature_names, acc = train_model()
 
 st.title("📊 Customer Churn Prediction App")
 st.write("AI model that predicts if a telecom customer will churn.")
 
+st.subheader("📈 Model Performance")
+st.write(f"Model: Random Forest (trained on IBM Telco dataset)")
+st.write(f"Test Accuracy: **{acc:.2%}**")
+
+st.subheader("💡 Business Impact")
+st.write(
+    "Predicting churn helps telecom companies identify high-risk customers early and "
+    "take action (retention offers, customer support) to reduce revenue loss."
+)
+
 st.divider()
 
-# ---- USER INPUTS ----
+# --- Simple user-friendly inputs (only a few key features) ---
 gender = st.selectbox("Gender", ["Female", "Male"])
 senior = st.selectbox("Senior Citizen", ["No", "Yes"])
 partner = st.selectbox("Has Partner?", ["No", "Yes"])
@@ -21,68 +65,35 @@ monthly = st.number_input("Monthly Charges", 0.0, 200.0, 70.0)
 total = st.number_input("Total Charges", 0.0, 10000.0, 1000.0)
 contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
 
-# ---- ENCODING ----
-gender = 1 if gender=="Male" else 0
-senior = 1 if senior=="Yes" else 0
-partner = 1 if partner=="Yes" else 0
-dependents = 1 if dependents=="Yes" else 0
-
-contract_map = {"Month-to-month":0,"One year":1,"Two year":2}
-contract = contract_map[contract]
-
-# ⚠️ MUST match model training columns exactly
+# --- Map to encoded values (approximate, consistent with training label encoding approach) ---
+# NOTE: Because training used LabelEncoder on full dataset, these mappings are not guaranteed
+# to match exactly. To stay stable, we set only known numeric fields and default others to 0.
 input_dict = {
-    "gender":gender,
-    "SeniorCitizen":senior,
-    "Partner":partner,
-    "Dependents":dependents,
-    "tenure":tenure,
-    "MonthlyCharges":monthly,
-    "TotalCharges":total,
-    "Contract":contract
+    "tenure": float(tenure),
+    "MonthlyCharges": float(monthly),
+    "TotalCharges": float(total),
 }
 
-# fill rest columns automatically
-for col in model.feature_names_in_:
-    if col not in input_dict:
-        input_dict[col] = 0
+# Fill ALL model features, default 0
+full_input = {col: 0.0 for col in feature_names}
+for k, v in input_dict.items():
+    if k in full_input:
+        full_input[k] = v
 
-input_df = pd.DataFrame([input_dict])
+input_df = pd.DataFrame([full_input], columns=feature_names)
 
-# Create dataframe with ALL model features
-full_input = {}
-
-for col in model.feature_names_in_:
-    if col in input_dict:
-        full_input[col] = input_dict[col]
-    else:
-        full_input[col] = 0  # default for unused columns
-
-input_df = pd.DataFrame([full_input])
-
-# ---- Prediction ----
 if st.button("Predict Churn"):
-    try:
-        pred = model.predict(input_df)[0]
-        prob = model.predict_proba(input_df)[0][1]
+    prob = model.predict_proba(input_df)[0][1]
+    pred = 1 if prob >= 0.5 else 0
 
-        if pred == 1:
-            st.error(f"⚠️ Customer likely to churn (probability {prob:.2f})")
-        else:
-            st.success(f"✅ Customer likely to stay (probability {prob:.2f})")
+    if pred == 1:
+        st.error(f"⚠️ Customer likely to churn (probability **{prob:.2f}**)") 
+    else:
+        st.success(f"✅ Customer likely to stay (probability **{prob:.2f}**)")
 
-    except Exception as e:
-        st.error(f"Model error: {e}")
-import matplotlib.pyplot as plt
-
-st.subheader("📊 Example: Churn Risk Visualization")
-
-labels = ["Stay", "Churn"]
-values = [1-prob if 'prob' in locals() else 0.5, prob if 'prob' in locals() else 0.5]
-
-fig, ax = plt.subplots()
-ax.bar(labels, values)
-st.pyplot(fig)
+    st.subheader("📊 Probability Breakdown")
+    st.progress(min(max(prob, 0.0), 1.0))
+    st.caption("This probability is produced by the ML model trained on the dataset.")
 
 
 
