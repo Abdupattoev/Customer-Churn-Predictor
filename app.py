@@ -1,3 +1,8 @@
+st.markdown("### 📊 Customer Churn Prediction using Machine Learning")
+st.write(
+"This machine learning web app predicts whether a telecom customer will churn. "
+"It helps businesses identify high-risk customers and improve retention strategies."
+)
 import streamlit as st
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -95,6 +100,8 @@ if st.button("Predict Churn"):
     st.progress(min(max(prob, 0.0), 1.0))
     st.caption("This probability is produced by the ML model trained on the dataset.")
 
+st.markdown("---")
+st.markdown("Built by: Your Name | Data Science Portfolio Project")
 
 
 
