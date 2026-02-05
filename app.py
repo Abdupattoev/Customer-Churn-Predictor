@@ -99,7 +99,7 @@ plt.title("Sample Visualization", fontsize=10)
 data = io.BytesIO()
 plt.savefig(data)
 image = F"data:image/png;base64,{base64.b64encode(data.getvalue()).decode()}"
-alt = "Sample Visualization
+alt = "Sample Visualization"
 plt.close(fig)
 
 from sklearn.model_selection import train_test_split
