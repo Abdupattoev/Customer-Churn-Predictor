@@ -84,7 +84,6 @@ print("Success! Data is encoded and X_train is now defined.")
 df['Churn'] = df['Churn'].apply(lambda x: 1 if x == 'Yes' else 0)
 
 import numpy as np
-import IPython.display as display
 from matplotlib import pyplot as plt
 import io
 import base64
