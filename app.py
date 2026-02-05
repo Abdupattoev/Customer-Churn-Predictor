@@ -73,6 +73,16 @@ if st.button("Predict Churn"):
 
     except Exception as e:
         st.error(f"Model error: {e}")
+import matplotlib.pyplot as plt
+
+st.subheader("📊 Example: Churn Risk Visualization")
+
+labels = ["Stay", "Churn"]
+values = [1-prob if 'prob' in locals() else 0.5, prob if 'prob' in locals() else 0.5]
+
+fig, ax = plt.subplots()
+ax.bar(labels, values)
+st.pyplot(fig)
 
 
 
