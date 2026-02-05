@@ -49,16 +49,31 @@ for col in model.feature_names_in_:
 
 input_df = pd.DataFrame([input_dict])
 
-st.divider()
+# Create dataframe with ALL model features
+full_input = {}
 
-if st.button("Predict Churn"):
-    pred = model.predict(input_df)[0]
-    prob = model.predict_proba(input_df)[0][1]
-
-    if pred == 1:
-        st.error(f"⚠️ Customer likely to churn (probability {prob:.2f})")
+for col in model.feature_names_in_:
+    if col in input_dict:
+        full_input[col] = input_dict[col]
     else:
-        st.success(f"✅ Customer likely to stay (probability {prob:.2f})")
+        full_input[col] = 0  # default for unused columns
+
+input_df = pd.DataFrame([full_input])
+
+# ---- Prediction ----
+if st.button("Predict Churn"):
+    try:
+        pred = model.predict(input_df)[0]
+        prob = model.predict_proba(input_df)[0][1]
+
+        if pred == 1:
+            st.error(f"⚠️ Customer likely to churn (probability {prob:.2f})")
+        else:
+            st.success(f"✅ Customer likely to stay (probability {prob:.2f})")
+
+    except Exception as e:
+        st.error(f"Model error: {e}")
+
 
 
 
