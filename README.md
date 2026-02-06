@@ -4,7 +4,7 @@
 End-to-end machine learning project predicting telecom customer churn.
 
 ## Live App
-(paste your streamlit link here)
+(customer-churn-predictor-sbbqi5nhhslr2v7y5puvrm)
 
 ## Problem
 Customer churn reduces company revenue.  
